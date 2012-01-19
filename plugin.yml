@@ -22,15 +22,3 @@ commands:
     loff:
         description: turns the lights in an array off
         usage: /loff <name>
-    ledit:
-        description: start editing an existing array
-        usage: /ledit <name>
-    leadd:
-        description: add light to existing array
-        usage: /leadd <name>
-    leswadd:
-        description: add switch to existing array
-        usage: /leswadd <name>
-    lefinnish:
-        description: finnish editing an array
-        usage: /lefinnish
