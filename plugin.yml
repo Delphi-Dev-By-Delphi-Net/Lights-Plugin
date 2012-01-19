@@ -1,0 +1,24 @@
+name: Lights
+version: 0.0.1
+description: Allows creation switchable lights
+author: Delphi-Dev
+main: delphi.net.lights.Lights
+commands:
+    lcreate:
+        description: make a new light array
+        usage: /lcreate <name>
+    ladd:
+        desctiption: add a light to an aray
+        usage: /ladd while targeting a block to use as a light
+    lswadd:
+        description: adds a switch to the array
+        usage: /lswadd while targeting a block to use as a switch
+    lfinnish:
+        description: finnish making an array
+        usage: /lfinnish
+    lon:
+        description: turns the lights in an array on
+        usage: /lon <name>
+    loff:
+        description: turns the lights in an array off
+        usage: /loff <name>
