@@ -76,7 +76,6 @@ public class Lights extends JavaPlugin {
 		getCommand("lon").setExecutor(lce);
 		getCommand("loff").setExecutor(lce);
 		getCommand("linit").setExecutor(lce);
-		getCommand("ltest").setExecutor(lce);
 		pm.registerEvent(Event.Type.PLAYER_INTERACT, interactionListener, Event.Priority.Normal, this);
 		log.info(pName+"Enabled");
 	}
