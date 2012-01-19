@@ -16,7 +16,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 public class Lights extends JavaPlugin {
 	
 	public final String pName = "Lights: ";
-	public final String pVersion = "0.0.1";
+	public final String pVersion = "0.1.8";
 	Logger l = Logger.getLogger("Minecraft");
 	public FileConfiguration config;
 	private LightsCommandExecutor lce = new LightsCommandExecutor(this);
