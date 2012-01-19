@@ -9,6 +9,8 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
+import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class Lights extends JavaPlugin {
@@ -18,12 +20,14 @@ public class Lights extends JavaPlugin {
 	Logger l = Logger.getLogger("Minecraft");
 	public FileConfiguration config;
 	private LightsCommandExecutor lce = new LightsCommandExecutor(this);
+	PluginManager pm;
 	
 	//Variables Loaded at startup
 	public int totalArrays;
 	public String[] lightArrays;
 	public ArrayList<Block> lightBlocks = new ArrayList<Block>();
 	public ArrayList<Block> switchBlocks = new ArrayList<Block>();
+	ArrayList<Block> switchStore;
 	
 	//edit mode stuff
 	private boolean editing;
@@ -40,22 +44,26 @@ public class Lights extends JavaPlugin {
 	public void onEnable() {
 		l.info(pName+"Starting");
 		config = getConfig();
+		pm = this.getServer().getPluginManager();
 		lightArrays = new String[1000];
 		
 		// set this boolean equal to the value of FIRST_RUN in the MAIN section
 		boolean firstRun = config.getConfigurationSection("MAIN").getBoolean("FIRST_RUN");
-		
 		// if firstRun is true do the initial setup, if not just load the data
 		if(firstRun){
+			config.getConfigurationSection("MAIN").set("FIRST_RUN", false);
 			config.getConfigurationSection("MAIN").set("TOTAL_ARRAYS", 0); // sets the total number of arrays to 0
 			config.createSection("ARRAY_INDEXES");
 			config.createSection("ARRAYS"); //create a section to hold all of the arrays
-			config.getConfigurationSection("MAIN").set("FIRST_RUN", false);
-			saveConfig(); //saves the configuration to file
+			saveConfig();
 			//set variables to default values
 			totalArrays =0;
+			l.info(pName+"First Run Setup Done.OK");
 		}else{
 			loadArrayIndexes();
+			totalArrays = config.getConfigurationSection("MAIN").getInt("TOTAL_ARRAYS");
+			l.info(pName+"Load Complete,");
+			l.info(pName+"Started.OK");
 		}
 		
 		//set the exicutor for the commands
@@ -107,8 +115,13 @@ public class Lights extends JavaPlugin {
 			Player p = player;
 		Block targetBlock = p.getTargetBlock(null, 10);
 		if (targetBlock.getType().equals(Material.GLOWSTONE)) {
-			lightBlocks.add(targetBlock);
-			p.sendMessage("Light Added");
+			if(lightBlocks.contains(targetBlock)){
+				p.sendMessage("Light allready in this array");
+			}else{
+				lightBlocks.add(targetBlock);
+				p.sendMessage("Light Added");
+			}
+			
 		} else {
 			p.sendMessage("Only Glowstone can be added as a light");
 		}
@@ -123,8 +136,13 @@ public class Lights extends JavaPlugin {
 			Player p = player;
 		Block targetBlock = p.getTargetBlock(null, 10);
 		if (targetBlock.getType().equals(Material.STONE_BUTTON)) {
-			switchBlocks.add(targetBlock);
+			if(switchBlocks.contains(targetBlock)){
+				p.sendMessage("Switch allready in this array");
+			}else{
+				switchBlocks.add(targetBlock);
 			p.sendMessage("Switch Added");
+			}
+			
 		} else {
 			p.sendMessage("Only Stone Buttons can be added as a switch");
 		}
@@ -133,16 +151,6 @@ public class Lights extends JavaPlugin {
 		}
 	}
 
-	// add light to existing array
-	public void addLightExisting(Player player, String array) {
-		
-	}
-	
-	// add a switch to existing array
-	public void addSwitchExisting(Player player, String array) {
-		
-	}
-	
 	// saves array indexes to file
 	public void saveArrayIndexes() {
 		for (int i = 0; i < lightArrays.length; i++) {
@@ -205,9 +213,11 @@ public class Lights extends JavaPlugin {
 	// leves edit mode
 	public void stopEditing(Player p) {
 		saveLightBlocks();
+		saveSwitchBlocks();
 		editing=false;
 		p.sendMessage("Light Array "+curEditingArray+" Created");
 		p.sendMessage("Array contains "+totalL+" Lights");
+		p.sendMessage("Array contains "+totalS+" Switches");
 		l.info(p.getDisplayName().toString()+" Created light array "+curEditingArray);
 		totalL=0;
 		totalS=0;
@@ -217,49 +227,63 @@ public class Lights extends JavaPlugin {
 	// turns an array on
 	public void turnON(String name, Player p){
 		ArrayList<Block> lightsToChange = new ArrayList<Block>();
-		for(int i=0; config.getConfigurationSection("ARRAYS").getConfigurationSection(name).getConfigurationSection("LIGHTS").contains("Light_"+i+"_x"); i++){
-			Location l = p.getLocation();
-			World w = l.getWorld();
-			int x = config.getConfigurationSection("ARRAYS").getConfigurationSection(name).getConfigurationSection("LIGHTS").getInt("Light_"+i+"_x");
-			int y = config.getConfigurationSection("ARRAYS").getConfigurationSection(name).getConfigurationSection("LIGHTS").getInt("Light_"+i+"_y");
-			int z = config.getConfigurationSection("ARRAYS").getConfigurationSection(name).getConfigurationSection("LIGHTS").getInt("Light_"+i+"_z");
-			Block b = w.getBlockAt(x, y, z);
-			lightsToChange.add(b);
-		}
-		for(int i=0; i < lightsToChange.size(); i++){
-			Block b = lightsToChange.get(i);
-			if(b.getType().equals(Material.COBBLESTONE)){
-				b.setType(Material.GLOWSTONE);
+		if(config.getConfigurationSection("ARRAYS").getConfigurationSection(name) !=null){
+			if(!config.getConfigurationSection("ARRAYS").getConfigurationSection(name).getBoolean("STATE")){
+				for(int i=0; config.getConfigurationSection("ARRAYS").getConfigurationSection(name).getConfigurationSection("LIGHTS").contains("Light_"+i+"_x"); i++){
+					Location l = p.getLocation();
+					World w = l.getWorld();
+					int x = config.getConfigurationSection("ARRAYS").getConfigurationSection(name).getConfigurationSection("LIGHTS").getInt("Light_"+i+"_x");
+					int y = config.getConfigurationSection("ARRAYS").getConfigurationSection(name).getConfigurationSection("LIGHTS").getInt("Light_"+i+"_y");
+					int z = config.getConfigurationSection("ARRAYS").getConfigurationSection(name).getConfigurationSection("LIGHTS").getInt("Light_"+i+"_z");
+					Block b = w.getBlockAt(x, y, z);
+					lightsToChange.add(b);
+				}
+				for(int i=0; i < lightsToChange.size(); i++){
+					Block b = lightsToChange.get(i);
+					if(b.getType().equals(Material.COBBLESTONE)){
+						b.setType(Material.GLOWSTONE);
+					}
+				}
+				lightsToChange.clear();
+				lightsToChange =null;
+				config.getConfigurationSection("ARRAYS").getConfigurationSection(name).set("STATE", true);
 			}else{
-				p.sendMessage("The lights are allready On");
+				p.sendMessage("Lights in array "+name+" are allready on");
 			}
+		}else{
+			p.sendMessage("Array does not exist");
 		}
-		lightsToChange.clear();
-		lightsToChange =null;
 	}
 	
 	//turn an array off
 	public void turnOFF(String name, Player p){
 		ArrayList<Block> lightsToChange = new ArrayList<Block>();
-		for(int i=0; config.getConfigurationSection("ARRAYS").getConfigurationSection(name).getConfigurationSection("LIGHTS").contains("Light_"+i+"_x"); i++){
-			Location l = p.getLocation();
-			World w = l.getWorld();
-			int x = config.getConfigurationSection("ARRAYS").getConfigurationSection(name).getConfigurationSection("LIGHTS").getInt("Light_"+i+"_x");
-			int y = config.getConfigurationSection("ARRAYS").getConfigurationSection(name).getConfigurationSection("LIGHTS").getInt("Light_"+i+"_y");
-			int z = config.getConfigurationSection("ARRAYS").getConfigurationSection(name).getConfigurationSection("LIGHTS").getInt("Light_"+i+"_z");
-			Block b = w.getBlockAt(x, y, z);
-			lightsToChange.add(b);
-		}
-		for(int i=0; i < lightsToChange.size(); i++){
-			Block b = lightsToChange.get(i);
-			if(b.getType().equals(Material.GLOWSTONE)){
-				b.setType(Material.COBBLESTONE);
+		if(config.getConfigurationSection("ARRAYS").getConfigurationSection(name) !=null){
+			if(config.getConfigurationSection("ARRAYS").getConfigurationSection(name).getBoolean("STATE")){
+				for(int i=0; config.getConfigurationSection("ARRAYS").getConfigurationSection(name).getConfigurationSection("LIGHTS").contains("Light_"+i+"_x"); i++){
+					Location l = p.getLocation();
+					World w = l.getWorld();
+					int x = config.getConfigurationSection("ARRAYS").getConfigurationSection(name).getConfigurationSection("LIGHTS").getInt("Light_"+i+"_x");
+					int y = config.getConfigurationSection("ARRAYS").getConfigurationSection(name).getConfigurationSection("LIGHTS").getInt("Light_"+i+"_y");
+					int z = config.getConfigurationSection("ARRAYS").getConfigurationSection(name).getConfigurationSection("LIGHTS").getInt("Light_"+i+"_z");
+					Block b = w.getBlockAt(x, y, z);
+					lightsToChange.add(b);
+				}
+				for(int i=0; i < lightsToChange.size(); i++){
+					Block b = lightsToChange.get(i);
+					if(b.getType().equals(Material.GLOWSTONE)){
+						b.setType(Material.COBBLESTONE);
+					}
+				}
+				lightsToChange.clear();
+				lightsToChange =null;
+				config.getConfigurationSection("ARRAYS").getConfigurationSection(name).set("STATE", false);
 			}else{
-				p.sendMessage("The lights are allready Off");
+				p.sendMessage("Lights in array "+name+" are allready off");
 			}
+		}else{
+			p.sendMessage("Array does not exist");
 		}
-		lightsToChange.clear();
-		lightsToChange =null;
 	}
-	
+
 }	

@@ -2,9 +2,6 @@ package delphi.net.lights;
 
 import java.util.ArrayList;
 
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -46,6 +43,7 @@ public class LightsCommandExecutor implements CommandExecutor {
 			return true;
 		}
 		
+		
 		if(command.getName().equalsIgnoreCase("lon")){
 			if(arg3.length ==1){
 				String name = arg3[0];
@@ -64,23 +62,10 @@ public class LightsCommandExecutor implements CommandExecutor {
 			}else{
 				return false;
 			}
+			
 		}else{
-			return false;
+				return false;
 		}
 		
-	}
-
-	/*
-	 * Block t = p.getTargetBlock(null, 10);
-			al.add(t);
-			Location l = p.getLocation();
-			World w = l.getWorld();
-			Block b = w.getBlockAt(t.getX()+1, t.getY()+1, t.getZ());
-			if(p.getTargetBlock(null, 10).getType().equals(Material.GLOWSTONE)){
-				b.setType(Material.COBBLESTONE);
-			}else{
-				b.setType(Material.GLOWSTONE);
-			}
-	 */
-	
+	}	
 }
