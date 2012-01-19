@@ -16,18 +16,20 @@ import org.bukkit.plugin.java.JavaPlugin;
 public class Lights extends JavaPlugin {
 	
 	public final String pName = "Lights: ";
-	public final String pVersion = "0.1.8";
-	Logger l = Logger.getLogger("Minecraft");
+	public final String pVersion = "0.0.1";
+	Logger log = Logger.getLogger("Minecraft");
 	public FileConfiguration config;
 	private LightsCommandExecutor lce = new LightsCommandExecutor(this);
 	PluginManager pm;
+	private final LightsPlayerListener interactionListener = new LightsPlayerListener(this);
 	
 	//Variables Loaded at startup
 	public int totalArrays;
 	public String[] lightArrays;
 	public ArrayList<Block> lightBlocks = new ArrayList<Block>();
 	public ArrayList<Block> switchBlocks = new ArrayList<Block>();
-	ArrayList<Block> switchStore;
+	public ArrayList<Block> switchStore = new ArrayList<Block>();
+	ArrayList<String> arrayNames;
 	
 	//edit mode stuff
 	private boolean editing;
@@ -37,12 +39,12 @@ public class Lights extends JavaPlugin {
 	
 	
 	public void onDisable() {
-		l.info(pName+"Disabled");
+		log.info(pName+"Disabled");
 		
 	}
 
 	public void onEnable() {
-		l.info(pName+"Starting");
+		log.info(pName+"Starting");
 		config = getConfig();
 		pm = this.getServer().getPluginManager();
 		lightArrays = new String[1000];
@@ -58,12 +60,12 @@ public class Lights extends JavaPlugin {
 			saveConfig();
 			//set variables to default values
 			totalArrays =0;
-			l.info(pName+"First Run Setup Done.OK");
+			log.info(pName+"First Run Setup Done.OK");
 		}else{
 			loadArrayIndexes();
 			totalArrays = config.getConfigurationSection("MAIN").getInt("TOTAL_ARRAYS");
-			l.info(pName+"Load Complete,");
-			l.info(pName+"Started.OK");
+			log.info(pName+"Load Complete,");
+			log.info(pName+"Started.OK");
 		}
 		
 		//set the exicutor for the commands
@@ -73,7 +75,10 @@ public class Lights extends JavaPlugin {
 		getCommand("lfinnish").setExecutor(lce);
 		getCommand("lon").setExecutor(lce);
 		getCommand("loff").setExecutor(lce);
-		l.info(pName+"Enabled");
+		getCommand("linit").setExecutor(lce);
+		getCommand("ltest").setExecutor(lce);
+		pm.registerEvent(Event.Type.PLAYER_INTERACT, interactionListener, Event.Priority.Normal, this);
+		log.info(pName+"Enabled");
 	}
 	
 	// Creates a new Light Array
@@ -140,7 +145,7 @@ public class Lights extends JavaPlugin {
 				p.sendMessage("Switch allready in this array");
 			}else{
 				switchBlocks.add(targetBlock);
-			p.sendMessage("Switch Added");
+				p.sendMessage("Switch Added");
 			}
 			
 		} else {
@@ -218,7 +223,7 @@ public class Lights extends JavaPlugin {
 		p.sendMessage("Light Array "+curEditingArray+" Created");
 		p.sendMessage("Array contains "+totalL+" Lights");
 		p.sendMessage("Array contains "+totalS+" Switches");
-		l.info(p.getDisplayName().toString()+" Created light array "+curEditingArray);
+		log.info(p.getDisplayName().toString()+" Created light array "+curEditingArray);
 		totalL=0;
 		totalS=0;
 		curEditingArray="";
@@ -286,4 +291,67 @@ public class Lights extends JavaPlugin {
 		}
 	}
 
+	//load array names
+	public void loadArrayNames(){
+		arrayNames = null;
+		arrayNames = new ArrayList<String>();//holds the array names
+		//get array names from index section
+		for(int i=0; config.getConfigurationSection("ARRAY_INDEXES").contains("INDEX_"+i); i++){
+			arrayNames.add(config.getConfigurationSection("ARRAY_INDEXES").getString("INDEX_"+i));
+		}
+	}
+	
+	//Initialize Method called by /linit and oneneble and /lfinnish
+	public void loadSwitchBlocks(Player p) {
+		loadArrayNames();
+		for(int index=0; index <arrayNames.size(); index++){
+			String name = arrayNames.get(index);
+			// loop through the array names and get the Switches in each array
+			for (int i=0; config.getConfigurationSection("ARRAYS").getConfigurationSection(name).getConfigurationSection("SWITCHES").contains("Switch_"+i+"_x"); i++){
+				Location l = p.getLocation();
+				World w = l.getWorld();
+				int x = config.getConfigurationSection("ARRAYS").getConfigurationSection(name).getConfigurationSection("SWITCHES").getInt("Switch_"+i+"_x");
+				int y = config.getConfigurationSection("ARRAYS").getConfigurationSection(name).getConfigurationSection("SWITCHES").getInt("Switch_"+i+"_y");
+				int z = config.getConfigurationSection("ARRAYS").getConfigurationSection(name).getConfigurationSection("SWITCHES").getInt("Switch_"+i+"_z");
+				Block b = w.getBlockAt(x, y, z);
+				switchStore.add(b);
+			}
+		}
+		log.info("All loaded ok");
+		//arrayNames.clear();
+		//arrayNames = null;
+		
+	}
+
+	//checks a button
+	public void checkButton(Player p){
+		Block b = p.getTargetBlock(null, 10);
+		int x = b.getX();
+		int y = b.getY();
+		int z = b.getZ();
+		loadArrayNames();
+		for(int index=0; index <arrayNames.size(); index++){
+			String name = arrayNames.get(index);
+			for (int i=0; config.getConfigurationSection("ARRAYS").getConfigurationSection(name).getConfigurationSection("SWITCHES").contains("Switch_"+i+"_x"); i++){
+				int xb = config.getConfigurationSection("ARRAYS").getConfigurationSection(name).getConfigurationSection("SWITCHES").getInt("Switch_"+i+"_x");
+				int yb = config.getConfigurationSection("ARRAYS").getConfigurationSection(name).getConfigurationSection("SWITCHES").getInt("Switch_"+i+"_y");
+				int zb = config.getConfigurationSection("ARRAYS").getConfigurationSection(name).getConfigurationSection("SWITCHES").getInt("Switch_"+i+"_z");
+				if(x==xb && y==yb && z==zb){
+					String array = config.getConfigurationSection("ARRAY_INDEXES").getString("INDEX_"+index);
+					bToggle(array, p);
+				}
+			}
+		}
+	}
+	
+	//toggles a light
+	public void bToggle(String name, Player p){
+		Player play = p;
+		if(config.getConfigurationSection("ARRAYS").getConfigurationSection(name).getBoolean("STATE")){
+			turnOFF(name, play);
+		}else{
+			turnON(name,play);
+		}
+	}
+	
 }	

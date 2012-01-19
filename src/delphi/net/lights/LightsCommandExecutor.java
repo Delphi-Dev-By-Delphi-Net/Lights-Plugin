@@ -38,12 +38,24 @@ public class LightsCommandExecutor implements CommandExecutor {
 			return true;
 		}
 		
+		//add switch
+		if(command.getName().equalsIgnoreCase("lswadd")){
+			lights.addSwitch(p);
+			return true;
+		}
+		
+		//finnish creating
 		if(command.getName().equalsIgnoreCase("lfinnish")){
 			lights.stopEditing(p);
 			return true;
 		}
 		
+		//initialize command
+		if(command.getName().equalsIgnoreCase("linit")){
+			lights.loadSwitchBlocks(p);
+		}
 		
+		//turn on an array
 		if(command.getName().equalsIgnoreCase("lon")){
 			if(arg3.length ==1){
 				String name = arg3[0];
@@ -54,6 +66,7 @@ public class LightsCommandExecutor implements CommandExecutor {
 			}
 		}
 		
+		//turn off an array
 		if(command.getName().equalsIgnoreCase("loff")){
 			if(arg3.length ==1){
 				String name = arg3[0];

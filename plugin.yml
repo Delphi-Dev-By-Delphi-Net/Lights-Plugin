@@ -1,5 +1,5 @@
 name: Lights
-version: 0.1.8
+version: 0.0.1
 description: Allows creation switchable lights
 author: Delphi-Dev
 main: delphi.net.lights.Lights
@@ -22,3 +22,6 @@ commands:
     loff:
         description: turns the lights in an array off
         usage: /loff <name>
+    linit:
+        description: inits arrays
+        usage: /linit
