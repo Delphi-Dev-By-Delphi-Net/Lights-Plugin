@@ -236,8 +236,8 @@ public class Lights extends JavaPlugin {
 			int z = config.getConfigurationSection("ARRAYS").getConfigurationSection(name).getConfigurationSection("LIGHTS").getInt("Light_"+i+"_z");
 			Block b = w.getBlockAt(x, y, z);
 			b.setType(Material.COBBLESTONE);
-			p.sendMessage("donw");
 		}
+		p.sendMessage("donw");
 		/*
 		for(int i=0; i < lightsToChange.size(); i++){
 			Block b = lightsToChange.get(i);
