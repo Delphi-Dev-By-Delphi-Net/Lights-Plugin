@@ -52,7 +52,6 @@ public class Lights extends JavaPlugin {
 			config.createSection("ARRAYS"); //create a section to hold all of the arrays
 			config.getConfigurationSection("MAIN").set("FIRST_RUN", false);
 			saveConfig(); //saves the configuration to file
-			
 			//set variables to default values
 			totalArrays =0;
 		}else{
@@ -66,7 +65,7 @@ public class Lights extends JavaPlugin {
 		getCommand("lfinnish").setExecutor(lce);
 		getCommand("lon").setExecutor(lce);
 		getCommand("loff").setExecutor(lce);
-		
+		l.info(pName+"Enabled");
 	}
 	
 	// Creates a new Light Array
@@ -81,6 +80,7 @@ public class Lights extends JavaPlugin {
 				config.getConfigurationSection("ARRAYS").createSection(arrayName);
 				config.getConfigurationSection("ARRAYS").getConfigurationSection(arrayName).set("INDEX", totalArrays);
 				config.getConfigurationSection("ARRAYS").getConfigurationSection(arrayName).set("OWNER", playerName);
+				config.getConfigurationSection("ARRAYS").getConfigurationSection(arrayName).set("STATE", true);//true for on false for off, must be true initialy
 				config.getConfigurationSection("ARRAYS").getConfigurationSection(arrayName).set("TOTAL_LIGHTS", 0);
 				config.getConfigurationSection("ARRAYS").getConfigurationSection(arrayName).createSection("LIGHTS");
 				config.getConfigurationSection("ARRAYS").getConfigurationSection(arrayName).set("TOTAL_SWITCHES", 0);
@@ -133,6 +133,16 @@ public class Lights extends JavaPlugin {
 		}
 	}
 
+	// add light to existing array
+	public void addLightExisting(Player player, String array) {
+		
+	}
+	
+	// add a switch to existing array
+	public void addSwitchExisting(Player player, String array) {
+		
+	}
+	
 	// saves array indexes to file
 	public void saveArrayIndexes() {
 		for (int i = 0; i < lightArrays.length; i++) {
@@ -166,6 +176,7 @@ public class Lights extends JavaPlugin {
 		}
 		lightBlocks.clear();
 		config.getConfigurationSection("ARRAYS").getConfigurationSection(curEditingArray).set("TOTAL_LIGHTS", totalL);
+		saveConfig();
 	}
 	
 	//method for saving a blocks location
@@ -195,11 +206,12 @@ public class Lights extends JavaPlugin {
 	public void stopEditing(Player p) {
 		saveLightBlocks();
 		editing=false;
-		p.sendMessage("Light Array "+curEditingArray+"Created");
+		p.sendMessage("Light Array "+curEditingArray+" Created");
 		p.sendMessage("Array contains "+totalL+" Lights");
+		l.info(p.getDisplayName().toString()+" Created light array "+curEditingArray);
 		totalL=0;
+		totalS=0;
 		curEditingArray="";
-		
 	}
 	
 	// turns an array on
@@ -222,30 +234,32 @@ public class Lights extends JavaPlugin {
 				p.sendMessage("The lights are allready On");
 			}
 		}
+		lightsToChange.clear();
+		lightsToChange =null;
 	}
 	
 	//turn an array off
 	public void turnOFF(String name, Player p){
-		Player player = p;
 		ArrayList<Block> lightsToChange = new ArrayList<Block>();
-		Location l = player.getLocation();
-		World w = l.getWorld();
 		for(int i=0; config.getConfigurationSection("ARRAYS").getConfigurationSection(name).getConfigurationSection("LIGHTS").contains("Light_"+i+"_x"); i++){
+			Location l = p.getLocation();
+			World w = l.getWorld();
 			int x = config.getConfigurationSection("ARRAYS").getConfigurationSection(name).getConfigurationSection("LIGHTS").getInt("Light_"+i+"_x");
 			int y = config.getConfigurationSection("ARRAYS").getConfigurationSection(name).getConfigurationSection("LIGHTS").getInt("Light_"+i+"_y");
 			int z = config.getConfigurationSection("ARRAYS").getConfigurationSection(name).getConfigurationSection("LIGHTS").getInt("Light_"+i+"_z");
 			Block b = w.getBlockAt(x, y, z);
-			b.setType(Material.COBBLESTONE);
-			p.sendMessage("donw");
+			lightsToChange.add(b);
 		}
-		/*
 		for(int i=0; i < lightsToChange.size(); i++){
 			Block b = lightsToChange.get(i);
 			if(b.getType().equals(Material.GLOWSTONE)){
 				b.setType(Material.COBBLESTONE);
+			}else{
+				p.sendMessage("The lights are allready Off");
 			}
-			
-		}*/
+		}
+		lightsToChange.clear();
+		lightsToChange =null;
 	}
 	
 }	
