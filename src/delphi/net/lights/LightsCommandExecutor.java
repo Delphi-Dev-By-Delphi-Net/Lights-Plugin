@@ -44,8 +44,14 @@ public class LightsCommandExecutor implements CommandExecutor {
 			return true;
 		}
 		
+		//add switch
+		if(command.getName().equalsIgnoreCase("llist")){
+			lights.listArrays(p);
+			return true;
+		}
+		
 		//finnish creating
-		if(command.getName().equalsIgnoreCase("lfinnish")){
+		if(command.getName().equalsIgnoreCase("lfinish")){
 			lights.stopEditing(p);
 			return true;
 		}
@@ -53,6 +59,12 @@ public class LightsCommandExecutor implements CommandExecutor {
 		//initialize command
 		if(command.getName().equalsIgnoreCase("linit")){
 			lights.loadSwitchBlocks(p);
+			return true;
+		}
+		
+		if(command.getName().equalsIgnoreCase("lplacemode")){
+			lights.togglePlaceMode(p);
+			return true;
 		}
 		
 		//turn on an array
