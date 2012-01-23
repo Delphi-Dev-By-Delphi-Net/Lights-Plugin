@@ -16,7 +16,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 public class Lights extends JavaPlugin {
 	
 	public final String pName = "Lights: ";
-	public final String pVersion = "0.1.0";
+	public final String pVersion = "0.3.2";
 	Logger log = Logger.getLogger("Minecraft");
 	public FileConfiguration config;
 	private LightsCommandExecutor lce = new LightsCommandExecutor(this);
@@ -85,6 +85,7 @@ public class Lights extends JavaPlugin {
 		getCommand("lplacemode").setExecutor(lce);
 		pm.registerEvent(Event.Type.PLAYER_INTERACT, interactionListener, Event.Priority.Normal, this);
 		pm.registerEvent(Event.Type.BLOCK_PLACE, blockListener, Event.Priority.Normal, this);
+		pm.registerEvent(Event.Type.BLOCK_BREAK, blockListener, Event.Priority.Normal, this);
 		log.info(pName+"Enabled");
 	}
 	
@@ -373,7 +374,7 @@ public class Lights extends JavaPlugin {
 					bToggle(array, p);
 				}
 			}
-		}
+		} 
 	}
 	
 	//toggles a light
@@ -412,11 +413,6 @@ public class Lights extends JavaPlugin {
 		}else{
 			p.sendMessage("You are not editing an array");
 		}
-		
-		
-		
-		
-		
 	}
 
 	// Add a light to the currently editing array
@@ -430,4 +426,21 @@ public class Lights extends JavaPlugin {
 		switchBlocks.add(b);
 		player.sendMessage("Switch Added");
 	}
+
+	//Check and remove Light blocks if they break while editing
+		public void checkLIBlock(Block b, Player p){
+			if(lightBlocks.contains(b)){
+				lightBlocks.remove(b);
+				p.sendMessage("Light Removed");
+			}
+		}
+	
+	//Check and remove switch blocks if they break while editing
+	public void checkSWBlock(Block b, Player p){
+		if(switchBlocks.contains(b)){
+			switchBlocks.remove(b);
+			p.sendMessage("Switch Removed");
+		}
+	}
+
 }	

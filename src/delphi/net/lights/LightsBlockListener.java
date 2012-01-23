@@ -4,6 +4,7 @@ import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
+import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockListener;
 import org.bukkit.event.block.BlockPlaceEvent;
 
@@ -33,12 +34,21 @@ public class LightsBlockListener extends BlockListener {
 				}
 			}
 		}
-		
-		
-		
-		
 	}
 
+	@Override
+	public void onBlockBreak(BlockBreakEvent event) {
+		boolean edt = lights.editing;
+		if(edt){
+			Player p = event.getPlayer();
+			Block b = event.getBlock();
+			if(b.getType().equals(Material.GLOWSTONE)){
+				lights.checkLIBlock(b, p);
+			}else if(b.getType().equals(Material.STONE_BUTTON)){
+				lights.checkSWBlock(b, p);
+			}
+		}
+	}
 			
 
 }
