@@ -1,33 +1,33 @@
 name: Lights
-version: 0.3.2
-description: Allows creation switchable lights
+version: 0.4.5
+description: Make arrays of glowstone lights that can be switched on and off using stone buttons.
 author: Delphi-Dev
 main: delphi.net.lights.Lights
 commands:
     lcreate:
-        description: make a new light array
+        description: Make a new light array
         usage: /lcreate <name>
     ladd:
-        desctiption: add a light to an aray
+        desctiption: Adds a light to an array
         usage: /ladd while targeting a block to use as a light
     lswadd:
-        description: adds a switch to the array
+        description: Adds a switch to the array
         usage: /lswadd while targeting a block to use as a switch
     lplacemode:
-        description: enables /disables placemode
+        description: Enables /disables placemode
         usage: /lplacemode
     lfinish:
-        description: finish making an array
+        description: Finish making an array
         usage: /lfinish
     lon:
-        description: turns the lights in an array on
+        description: Turns the lights in an array on
         usage: /lon <name>
     loff:
-        description: turns the lights in an array off
+        description: Turns the lights in an array off
         usage: /loff <name>
-    linit:
-        description: inits arrays
-        usage: /linit
+    ledit:
+        description: Edit an existing array
+        usage: /ledit <name>
     llist:
-        description: list arrays that exist
+        description: List arrays that exist
         usage: /llist

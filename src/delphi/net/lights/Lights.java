@@ -16,7 +16,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 public class Lights extends JavaPlugin {
 	
 	public final String pName = "Lights: ";
-	public final String pVersion = "0.3.2";
+	public final String pVersion = "0.4.5";
 	Logger log = Logger.getLogger("Minecraft");
 	public FileConfiguration config;
 	private LightsCommandExecutor lce = new LightsCommandExecutor(this);
@@ -32,7 +32,7 @@ public class Lights extends JavaPlugin {
 	public ArrayList<Block> switchStore = new ArrayList<Block>();
 	ArrayList<String> arrayNames;
 	
-	//edit mode stuff
+	// mode stuff
 	public boolean editing;
 	private String curEditingArray;
 	public String playerEditing;
@@ -59,6 +59,7 @@ public class Lights extends JavaPlugin {
 		if(firstRun){
 			config.getConfigurationSection("MAIN").set("FIRST_RUN", false);
 			config.getConfigurationSection("MAIN").set("TOTAL_ARRAYS", 0); // sets the total number of arrays to 0
+			config.getConfigurationSection("MAIN").set("OFF_BLOCK_TYPE", null);
 			config.createSection("ARRAY_INDEXES");
 			config.createSection("ARRAYS"); //create a section to hold all of the arrays
 			saveConfig();
@@ -80,8 +81,9 @@ public class Lights extends JavaPlugin {
 		getCommand("lfinish").setExecutor(lce);
 		getCommand("lon").setExecutor(lce);
 		getCommand("loff").setExecutor(lce);
-		getCommand("linit").setExecutor(lce);
+		//getCommand("linit").setExecutor(lce);
 		getCommand("llist").setExecutor(lce);
+		getCommand("ledit").setExecutor(lce);
 		getCommand("lplacemode").setExecutor(lce);
 		pm.registerEvent(Event.Type.PLAYER_INTERACT, interactionListener, Event.Priority.Normal, this);
 		pm.registerEvent(Event.Type.BLOCK_PLACE, blockListener, Event.Priority.Normal, this);
@@ -251,7 +253,7 @@ public class Lights extends JavaPlugin {
 			p.sendMessage("Light Array "+curEditingArray+" Created");
 			p.sendMessage("Array contains "+totalL+" Lights");
 			p.sendMessage("Array contains "+totalS+" Switches");
-			log.info(p.getDisplayName().toString()+" Created light array "+curEditingArray);
+			log.info(p.getDisplayName().toString()+" Created/Edited light array "+curEditingArray);
 			totalL=0;
 			totalS=0;
 			curEditingArray="";
@@ -357,8 +359,8 @@ public class Lights extends JavaPlugin {
 	}
 
 	//checks a button
-	public void checkButton(Player p) {
-		Block b = p.getTargetBlock(null, 10);
+	public void checkButton(Player p, Block block) {
+		Block b = block;
 		int x = b.getX();
 		int y = b.getY();
 		int z = b.getZ();
@@ -428,12 +430,12 @@ public class Lights extends JavaPlugin {
 	}
 
 	//Check and remove Light blocks if they break while editing
-		public void checkLIBlock(Block b, Player p){
-			if(lightBlocks.contains(b)){
-				lightBlocks.remove(b);
-				p.sendMessage("Light Removed");
-			}
+	public void checkLIBlock(Block b, Player p) {
+		if (lightBlocks.contains(b)) {
+			lightBlocks.remove(b);
+			p.sendMessage("Light Removed");
 		}
+	}
 	
 	//Check and remove switch blocks if they break while editing
 	public void checkSWBlock(Block b, Player p){
@@ -441,6 +443,71 @@ public class Lights extends JavaPlugin {
 			switchBlocks.remove(b);
 			p.sendMessage("Switch Removed");
 		}
+	}
+
+	//enter edit mode
+	public void editArray(Player p, String array){
+		if(editing && playerEditing.equals(p.getDisplayName().toString())){
+			p.sendMessage(playerEditing+" You are Allready editing an array");
+		}else if(editing && !playerEditing.equals(p.getDisplayName().toString())){
+			p.sendMessage(playerEditing+" is editing u can't change this");
+		}else{
+			if(config.getConfigurationSection("ARRAYS").getConfigurationSection(array) !=null){
+				if(config.getConfigurationSection("ARRAYS").getConfigurationSection(array).getString("OWNER").equals(p.getDisplayName().toString())){
+					while(!loadLightsForEdit(array)){
+						
+					}
+					while(!loadSwitchesForEdit(array)){
+					
+					}
+					p.sendMessage("Array is now ready for editing");
+					editing=true;
+					playerEditing=p.getDisplayName().toString();
+					curEditingArray=array;
+				}else{
+					p.sendMessage("You do not have permission to edit that array");
+				}
+				
+			}else{
+				
+			}
+			
+			
+		}
+	}
+	
+	// Load lights into array for editing
+	public boolean loadLightsForEdit(String arrayName){
+			World w = this.getServer().getWorlds().get(0);
+		for(int i=0; config.getConfigurationSection("ARRAYS").getConfigurationSection(arrayName).getConfigurationSection("LIGHTS").contains("Light_"+i+"_x"); i++){
+			int x = config.getConfigurationSection("ARRAYS").getConfigurationSection(arrayName).getConfigurationSection("LIGHTS").getInt("Light_"+i+"_x");
+			int y = config.getConfigurationSection("ARRAYS").getConfigurationSection(arrayName).getConfigurationSection("LIGHTS").getInt("Light_"+i+"_y");
+			int z = config.getConfigurationSection("ARRAYS").getConfigurationSection(arrayName).getConfigurationSection("LIGHTS").getInt("Light_"+i+"_z");
+			config.getConfigurationSection("ARRAYS").getConfigurationSection(arrayName).getConfigurationSection("LIGHTS").set("Light_"+i+"_x", null);
+			config.getConfigurationSection("ARRAYS").getConfigurationSection(arrayName).getConfigurationSection("LIGHTS").set("Light_"+i+"_y", null);
+			config.getConfigurationSection("ARRAYS").getConfigurationSection(arrayName).getConfigurationSection("LIGHTS").set("Light_"+i+"_z", null);
+			Block b = w.getBlockAt(x, y, z);
+			lightBlocks.add(b);
+		}
+		saveConfig();
+		return true;
+	}
+	
+	// Load lights into array for editing
+	public boolean loadSwitchesForEdit(String arrayName) {
+		World w = this.getServer().getWorlds().get(0);
+		for(int i=0; config.getConfigurationSection("ARRAYS").getConfigurationSection(arrayName).getConfigurationSection("SWITCHES").contains("Switch_"+i+"_x"); i++){
+			int x = config.getConfigurationSection("ARRAYS").getConfigurationSection(arrayName).getConfigurationSection("SWITCHES").getInt("Switch_"+i+"_x");
+			int y = config.getConfigurationSection("ARRAYS").getConfigurationSection(arrayName).getConfigurationSection("SWITCHES").getInt("Switch_"+i+"_y");
+			int z = config.getConfigurationSection("ARRAYS").getConfigurationSection(arrayName).getConfigurationSection("SWITCHES").getInt("Switch_"+i+"_z");
+			config.getConfigurationSection("ARRAYS").getConfigurationSection(arrayName).getConfigurationSection("SWITCHES").set("Switch_"+i+"_x", null);
+			config.getConfigurationSection("ARRAYS").getConfigurationSection(arrayName).getConfigurationSection("SWITCHES").set("Switch_"+i+"_y", null);
+			config.getConfigurationSection("ARRAYS").getConfigurationSection(arrayName).getConfigurationSection("SWITCHES").set("Switch_"+i+"_z", null);
+			Block b = w.getBlockAt(x, y, z);
+			switchBlocks.add(b);
+		}
+		saveConfig();
+		return true;
 	}
 
 }	

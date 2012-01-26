@@ -21,7 +21,7 @@ public class LightsPlayerListener extends PlayerListener {
 		Action act = event.getAction();
 		Block b = event.getClickedBlock();
 		if(act.equals(Action.RIGHT_CLICK_BLOCK) && b.getType().equals(Material.STONE_BUTTON)){
-			l.checkButton(p);
+			l.checkButton(p, b);
 		}
 	}
 	

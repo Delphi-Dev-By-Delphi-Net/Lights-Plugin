@@ -56,15 +56,28 @@ public class LightsCommandExecutor implements CommandExecutor {
 			return true;
 		}
 		
+		/*
 		//initialize command
 		if(command.getName().equalsIgnoreCase("linit")){
 			lights.loadSwitchBlocks(p);
 			return true;
 		}
+		*/
 		
 		if(command.getName().equalsIgnoreCase("lplacemode")){
 			lights.togglePlaceMode(p);
 			return true;
+		}
+		
+		if(command.getName().equalsIgnoreCase("ledit")){
+			if(arg3.length ==1){
+				String name = arg3[0];
+				lights.editArray(p, name);
+				return true;
+			}else{
+				return false;
+			}
+	
 		}
 		
 		//turn on an array
